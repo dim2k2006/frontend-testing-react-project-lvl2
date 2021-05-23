@@ -1,0 +1,40 @@
+{
+  "name": "@hexlet/code",
+  "version": "1.0.0",
+  "description": "Tests for react application.",
+  "engines": {
+    "node": ">=14"
+  },
+  "scripts": {
+    "test": "npx -n --experimental-vm-modules jest",
+    "test:watch": "npx -n --experimental-vm-modules jest --watch"
+  },
+  "type": "module",
+  "jest": {
+    "testEnvironment": "node",
+    "transform": {}
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dim2k2006/frontend-testing-react-project-lvl2.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dim2k2006/frontend-testing-react-project-lvl2/issues"
+  },
+  "homepage": "https://github.com/dim2k2006/frontend-testing-react-project-lvl2#readme",
+  "devDependencies": {
+    "@jest/globals": "^26.4.2",
+    "eslint": "^7.9.0",
+    "eslint-config-airbnb-base": "^14.2.0",
+    "eslint-plugin-import": "^2.22.0",
+    "eslint-plugin-jest": "^24.0.2",
+    "jest": "^26.4.2",
+    "jest-cli": "^26.4.2"
+  },
+  "dependencies": {
+    "@hexlet/react-todo-app-with-backend": "^0.2.0"
+  }
+}
