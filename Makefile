@@ -8,7 +8,7 @@ start:
 	npm start
 
 lint:
-	npx eslint .
+	npx eslint . --ext js,jsx
 
 test:
 	npm test

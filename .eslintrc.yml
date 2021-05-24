@@ -12,11 +12,19 @@ env:
 extends:
   - 'airbnb-base'
   - 'plugin:jest/recommended'
+  - 'plugin:react/recommended'
 
 parserOptions:
   ecmaVersion: 11
   sourceType: module
+  ecmaFeatures:
+    jsx: true
 
 rules:
   no-console: 0
   import/extensions: 0 # FIXME: remove when rule will be adjusted for new nodejs version
+  import/no-extraneous-dependencies: 0
+
+settings:
+  react:
+    version: 'detect'
