@@ -7,8 +7,6 @@ import { setupServer } from 'msw/node';
 import userEvent from '@testing-library/user-event';
 import { render, waitFor } from '../setupTests.js';
 
-const baseUrl = '/api/v1';
-
 const server = setupServer();
 
 const buildList = (props = {}) => {
