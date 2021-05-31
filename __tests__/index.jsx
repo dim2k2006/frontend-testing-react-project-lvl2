@@ -145,3 +145,32 @@ test('Deletes a task.', async () => {
 
   await waitFor(() => expect(queryByText(task.text)).toBeNull());
 });
+
+test('Does not remove tasks with equal names from different lists.', async () => {
+  const list1 = buildList({ name: 'primary' });
+  const list2 = buildList({ name: 'secondary' });
+  const taskText = faker.lorem.word();
+  const task1 = buildTask({ listId: list1.id, text: taskText });
+  const task2 = buildTask({ listId: list2.id, text: taskText });
+  const preloadedState = buildPreloadedState({
+    currentListId: list1.id,
+    lists: [list1, list2],
+    tasks: [task1, task2],
+  });
+
+  server.use(
+    rest.delete('/api/v1/tasks/:taskId', (req, res, ctx) => res(
+      ctx.status(204),
+    )),
+  );
+
+  const { getByRole, findByText, queryByText } = render(<Application { ...preloadedState } />);
+
+  userEvent.click(getByRole('button', { name: /remove/i }));
+
+  await waitFor(() => expect(queryByText(taskText)).toBeNull());
+
+  userEvent.click(getByRole('button', { name: /secondary/i }));
+
+  expect(await findByText(taskText)).toBeVisible();
+});
