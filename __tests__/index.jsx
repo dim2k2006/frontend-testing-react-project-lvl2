@@ -2,8 +2,6 @@ import React from 'react';
 import Application from '@hexlet/react-todo-app-with-backend';
 import { render } from '../setupTests.js';
 
-// Page object pattern!!!!
-
 const preloadedState = {
   currentListId: 1,
   lists: [
