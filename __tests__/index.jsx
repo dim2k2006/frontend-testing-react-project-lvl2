@@ -224,3 +224,46 @@ test('Does not recover tasks from recovered list.', async () => {
   await waitFor(() => expect(queryByText(task1.text)).toBeNull());
   await waitFor(() => expect(queryByText(task2.text)).toBeNull());
 });
+
+test('Does not duplicate tasks for lists with equal names.', async () => {
+  const list = buildList({ name: 'primary' });
+  const task1 = buildTask({ listId: list.id });
+  const task2 = buildTask({ listId: list.id });
+  const preloadedState = buildPreloadedState({
+    currentListId: list.id,
+    lists: [list],
+    tasks: [task1, task2],
+  });
+
+  server.use(
+    rest.post('/api/v1/lists', (req, res, ctx) => {
+      const { name } = req.body;
+      const newList = buildList({ name });
+
+      return res(
+        ctx.json(newList),
+      );
+    }),
+  );
+
+  const {
+    getByRole,
+    getAllByRole,
+    queryByText,
+    container,
+  } = render(<Application { ...preloadedState } />);
+
+  await waitFor(() => expect(queryByText(task1.text)).toBeVisible());
+  await waitFor(() => expect(queryByText(task2.text)).toBeVisible());
+
+  userEvent.type(getByRole('textbox', { name: /new list/i }), list.name);
+
+  userEvent.click(container.querySelector(selectors.addTaskButton));
+
+  await waitFor(() => expect(getAllByRole('button', { name: /primary/i })).toHaveLength(2));
+
+  userEvent.click(getAllByRole('button', { name: /primary/i })[1]);
+
+  await waitFor(() => expect(queryByText(task1.text)).toBeNull());
+  await waitFor(() => expect(queryByText(task2.text)).toBeNull());
+});
