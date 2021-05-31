@@ -174,3 +174,48 @@ test('Does not remove tasks with equal names from different lists.', async () =>
 
   expect(await findByText(taskText)).toBeVisible();
 });
+
+test('Does not recover tasks from recovered list.', async () => {
+  const list = buildList({ name: 'primary' });
+  const task1 = buildTask();
+  const task2 = buildTask();
+  const preloadedState = buildPreloadedState({
+    currentListId: list.id,
+    lists: [list],
+    tasks: [task1, task2],
+  });
+
+  server.use(
+    rest.delete('/api/v1/lists/:id', (req, res, ctx) => res(
+      ctx.status(204),
+    )),
+    rest.post('/api/v1/lists', (req, res, ctx) => {
+      const { name } = req.body;
+      const newList = buildList({ name });
+
+      return res(
+        ctx.json(newList),
+      );
+    }),
+  );
+
+  const { getByRole, queryByText, container } = render(<Application { ...preloadedState } />);
+
+  const deleteListButton = container.querySelector('.row .col-3 ul > li > div > button:last-child');
+
+  userEvent.click(deleteListButton);
+
+  await waitFor(() => expect(queryByText(list.name)).toBeNull());
+  await waitFor(() => expect(queryByText(task1.text)).toBeNull());
+  await waitFor(() => expect(queryByText(task2.text)).toBeNull());
+
+  userEvent.type(getByRole('textbox', { name: /new list/i }), list.name);
+
+  const addTaskButton = container.querySelector('.row .col-3 form button');
+
+  userEvent.click(addTaskButton);
+
+  await waitFor(() => expect(queryByText(list.name)).toBeVisible());
+  await waitFor(() => expect(queryByText(task1.text)).toBeNull());
+  await waitFor(() => expect(queryByText(task2.text)).toBeNull());
+});
