@@ -122,4 +122,26 @@ test('Updates a task.', async () => {
   expect(await findByRole('checkbox', { name: new RegExp(task.text) })).toBeChecked();
 });
 
-// deletes task
+test('Deletes a task.', async () => {
+  const list = buildList({ name: 'primary', removable: false });
+  const task = buildTask({ listId: list.id });
+  const preloadedState = buildPreloadedState({
+    currentListId: list.id,
+    lists: [list],
+    tasks: [task],
+  });
+
+  server.use(
+    rest.delete('/api/v1/tasks/:taskId', (req, res, ctx) => res(
+      ctx.status(204),
+    )),
+  );
+
+  const { getByRole, findByText, queryByText } = render(<Application { ...preloadedState } />);
+
+  expect(await findByText(task.text)).toBeVisible();
+
+  userEvent.click(getByRole('button', { name: /remove/i }));
+
+  await waitFor(() => expect(queryByText(task.text)).toBeNull());
+});
