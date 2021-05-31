@@ -85,15 +85,13 @@ test('Creates a task.', async () => {
     }),
   );
 
-  const { getByPlaceholderText, getByText } = render(<Application { ...preloadedState } />);
+  const { findByText, getByRole } = render(<Application { ...preloadedState } />);
 
-  userEvent.type(getByPlaceholderText('Please type text...'), taskText);
+  userEvent.type(getByRole('textbox', { name: /new task/i }), taskText);
 
-  userEvent.click(getByText('Add'));
+  userEvent.click(getByRole('button', { name: /add/i }));
 
-  await waitFor(() => {
-    expect(getByText(taskText)).toBeVisible();
-  });
+  expect(await findByText(taskText)).toBeVisible();
 });
 
 test('Updates a task.', async () => {
@@ -116,14 +114,12 @@ test('Updates a task.', async () => {
     }),
   );
 
-  const { getByLabelText, getByRole } = render(<Application { ...preloadedState } />);
+  const { getByRole, findByRole } = render(<Application { ...preloadedState } />);
 
-  const taskLabel = getByLabelText(task.text);
-  const checkbox = getByRole('checkbox', { name: new RegExp(task.text) });
+  userEvent.click(getByRole('checkbox', { name: new RegExp(task.text) }));
 
-  userEvent.click(taskLabel);
-
-  await waitFor(() => {
-    expect(checkbox).toBeChecked();
-  });
+  expect(await findByRole('checkbox', { name: new RegExp(task.text) })).toBeVisible();
+  expect(await findByRole('checkbox', { name: new RegExp(task.text) })).toBeChecked();
 });
+
+// deletes task
