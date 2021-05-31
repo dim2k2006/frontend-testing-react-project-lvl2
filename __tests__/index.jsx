@@ -9,14 +9,6 @@ import { render, waitFor } from '../setupTests.js';
 
 const baseUrl = '/api/v1';
 
-const routes = {
-  lists: () => [baseUrl, 'lists'].join('/'),
-  list: (id) => [baseUrl, 'lists', id].join('/'),
-  listTasks: (listId) => [baseUrl, 'lists', listId, 'tasks'].join('/'),
-  listTask: (listId, taskId) => [baseUrl, 'lists', listId, 'tasks', taskId].join('/'),
-  task: (taskId) => [baseUrl, 'tasks', taskId].join('/'),
-};
-
 const server = setupServer();
 
 const buildList = (props = {}) => {
