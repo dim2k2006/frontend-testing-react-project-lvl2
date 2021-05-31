@@ -37,7 +37,8 @@
     "eslint-plugin-react": "^7.23.2",
     "faker": "^5.5.3",
     "jest": "^26.4.2",
-    "jest-cli": "^26.4.2"
+    "jest-cli": "^26.4.2",
+    "msw": "^0.29.0"
   },
   "dependencies": {
     "@hexlet/react-todo-app-with-backend": "^0.2.0",
