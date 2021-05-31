@@ -56,6 +56,11 @@ const buildPreloadedState = (props = {}) => {
   return preloadedState;
 };
 
+const selectors = {
+  addTaskButton: '.row .col-3 form button',
+  deleteListButton: (listIndex) => `.row .col-3 ul > li:nth-child(${listIndex}) > div > button:last-child`,
+};
+
 beforeAll(() => server.listen());
 
 afterEach(() => server.resetHandlers());
@@ -201,7 +206,7 @@ test('Does not recover tasks from recovered list.', async () => {
 
   const { getByRole, queryByText, container } = render(<Application { ...preloadedState } />);
 
-  const deleteListButton = container.querySelector('.row .col-3 ul > li > div > button:last-child');
+  const deleteListButton = container.querySelector(selectors.deleteListButton(1));
 
   userEvent.click(deleteListButton);
 
@@ -211,7 +216,7 @@ test('Does not recover tasks from recovered list.', async () => {
 
   userEvent.type(getByRole('textbox', { name: /new list/i }), list.name);
 
-  const addTaskButton = container.querySelector('.row .col-3 form button');
+  const addTaskButton = container.querySelector(selectors.addTaskButton);
 
   userEvent.click(addTaskButton);
 
