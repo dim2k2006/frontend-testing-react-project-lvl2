@@ -61,6 +61,16 @@ const selectList = async (listName) => {
   userEvent.click(screen.getByRole('button', { name: new RegExp(listName) }));
 };
 
+const removeList = async (listName) => {
+  const listButton = screen.getByRole('button', { name: new RegExp(listName) });
+  const container = listButton.closest('div');
+  const removeListButton = container.querySelector('button:last-child');
+
+  userEvent.click(removeListButton);
+
+  return waitForElementToBeRemoved(screen.queryByText(listName));
+};
+
 test('Shows the application.', async () => {
   const preloadedState = buildPreloadedState();
 
@@ -137,50 +147,34 @@ test('Does not remove tasks with equal names from different lists.', async () =>
   expect(await screen.findByText(taskText)).toBeVisible();
 });
 
-// test('Does not recover tasks from recovered list.', async () => {
-//   const list = buildList({ name: 'primary' });
-//   const task1 = buildTask();
-//   const task2 = buildTask();
-//   const preloadedState = buildPreloadedState({
-//     currentListId: list.id,
-//     lists: [list],
-//     tasks: [task1, task2],
-//   });
-//
-//   // server.use(
-//   //   // rest.delete('/api/v1/lists/:id', (req, res, ctx) => res(
-//   //   //   ctx.status(204),
-//   //   // )),
-//   //   // rest.post('/api/v1/lists', (req, res, ctx) => {
-//   //   //   const { name } = req.body;
-//   //   //   const newList = buildList({ name });
-//   //   //
-//   //   //   return res(
-//   //   //     ctx.json(newList),
-//   //   //   );
-//   //   // }),
-//   // );
-//
-//   const { getByRole, queryByText, container } = render(<Application { ...preloadedState } />);
-//
-//   const deleteListButton = container.querySelector(selectors.deleteListButton(1));
-//
-//   userEvent.click(deleteListButton);
-//
-//   await waitFor(() => expect(queryByText(list.name)).toBeNull());
-//   await waitFor(() => expect(queryByText(task1.text)).toBeNull());
-//   await waitFor(() => expect(queryByText(task2.text)).toBeNull());
-//
-//   userEvent.type(getByRole('textbox', { name: /new list/i }), list.name);
-//
-//   const addTaskButton = container.querySelector(selectors.addTaskButton);
-//
-//   userEvent.click(addTaskButton);
-//
-//   await waitFor(() => expect(queryByText(list.name)).toBeVisible());
-//   await waitFor(() => expect(queryByText(task1.text)).toBeNull());
-//   await waitFor(() => expect(queryByText(task2.text)).toBeNull());
-// });
+test('Does not recover tasks from recovered list.', async () => {
+  const listName = faker.lorem.word();
+  const taskText1 = faker.lorem.word();
+  const taskText2 = faker.lorem.word();
+  const preloadedState = buildPreloadedState({ lists: [], tasks: [] });
+
+  render(<Application { ...preloadedState } />);
+
+  await createList(listName);
+
+  await selectList(listName);
+
+  await createTask(taskText1);
+
+  await createTask(taskText2);
+
+  await removeList(listName);
+
+  await waitFor(() => expect(screen.queryByText(listName)).toBeNull());
+
+  await createList(listName);
+
+  await selectList(listName);
+
+  await waitFor(() => expect(screen.queryByText(listName)).toBeVisible());
+  await waitFor(() => expect(screen.queryByText(taskText1)).toBeNull());
+  await waitFor(() => expect(screen.queryByText(taskText2)).toBeNull());
+});
 
 // test('Does not duplicate tasks for lists with equal names.', async () => {
 //   const list = buildList({ name: 'primary' });
