@@ -7,6 +7,7 @@ import {
   screen,
   render,
   getByRole,
+  waitForElementToBeRemoved,
   waitFor,
   buildList,
   buildTask,
@@ -25,32 +26,38 @@ afterEach(() => server.resetHandlers());
 
 afterAll(() => server.close());
 
-const createTask = (taskText) => {
+const createTask = async (taskText) => {
   userEvent.type(screen.getByRole('textbox', { name: /new task/i }), taskText);
   userEvent.click(screen.getByRole('button', { name: /add/i }));
+
+  return screen.findByText(taskText);
 };
 
-const toggleTask = (taskText) => {
+const toggleTask = async (taskText) => {
   userEvent.click(screen.getByRole('checkbox', { name: new RegExp(taskText) }));
 };
 
-const removeTask = (taskText) => {
+const removeTask = async (taskText) => {
   const taskCheckbox = screen.getByRole('checkbox', { name: new RegExp(taskText) });
   const container = taskCheckbox.closest('.row');
 
   userEvent.click(getByRole(container, 'button', { name: /remove/i }));
+
+  return waitForElementToBeRemoved(screen.queryByText(taskText));
 };
 
-const createList = (listName) => {
+const createList = async (listName) => {
   const field = screen.getByRole('textbox', { name: /new list/i });
   const container = field.closest('div');
   const button = container.querySelector('button[type="submit"]');
 
   userEvent.type(field, listName);
   userEvent.click(button);
+
+  return screen.findByText(listName);
 };
 
-const selectList = (listName) => {
+const selectList = async (listName) => {
   userEvent.click(screen.getByRole('button', { name: new RegExp(listName) }));
 };
 
@@ -69,9 +76,9 @@ test('Creates a task.', async () => {
 
   render(<Application { ...preloadedState } />);
 
-  createTask(taskText);
+  await createTask(taskText);
 
-  expect(await screen.findByText(taskText)).toBeVisible();
+  expect(screen.getByText(taskText)).toBeVisible();
 });
 
 test('Updates a task.', async () => {
@@ -81,11 +88,9 @@ test('Updates a task.', async () => {
 
   render(<Application { ...preloadedState } />);
 
-  createTask(taskText);
+  await createTask(taskText);
 
-  expect(await screen.findByText(taskText)).toBeVisible();
-
-  toggleTask(taskText);
+  await toggleTask(taskText);
 
   expect(await screen.findByRole('checkbox', { name: new RegExp(taskText) })).toBeVisible();
   expect(await screen.findByRole('checkbox', { name: new RegExp(taskText) })).toBeChecked();
@@ -98,13 +103,11 @@ test('Deletes a task.', async () => {
 
   render(<Application { ...preloadedState } />);
 
-  createTask(taskText);
+  await createTask(taskText);
 
-  expect(await screen.findByText(taskText)).toBeVisible();
+  await removeTask(taskText);
 
-  removeTask(taskText);
-
-  await waitFor(() => expect(screen.queryByText(taskText)).toBeNull());
+  expect(screen.queryByText(taskText)).toBeNull();
 });
 
 test('Does not remove tasks with equal names from different lists.', async () => {
@@ -115,31 +118,21 @@ test('Does not remove tasks with equal names from different lists.', async () =>
 
   render(<Application { ...preloadedState } />);
 
-  createList(listName1);
+  await createList(listName1);
 
-  expect(await screen.findByText(listName1)).toBeVisible();
+  await createList(listName2);
 
-  createList(listName2);
+  await selectList(listName1);
 
-  expect(await screen.findByText(listName2)).toBeVisible();
+  await createTask(taskText);
 
-  selectList(listName1);
+  await selectList(listName2);
 
-  createTask(taskText);
+  await createTask(taskText);
 
-  expect(await screen.findByText(taskText)).toBeVisible();
+  await removeTask(taskText);
 
-  selectList(listName2);
-
-  createTask(taskText);
-
-  expect(await screen.findByText(taskText)).toBeVisible();
-
-  removeTask(taskText);
-
-  await waitFor(() => expect(screen.queryByText(taskText)).toBeNull());
-
-  selectList(listName1);
+  await selectList(listName1);
 
   expect(await screen.findByText(taskText)).toBeVisible();
 });
