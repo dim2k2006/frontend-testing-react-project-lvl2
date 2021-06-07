@@ -16,7 +16,7 @@ const server = setupServer();
 
 const selectors = {
   addTaskButton: '.row .col-3 form button',
-  deleteListButton: (listIndex) => `.row .col-3 ul > li:nth-child(${listIndex}) > div > button:last-child`,
+  deleteListButton: (listIndex) => `.row .col-3 ul li:nth-child(${listIndex}) button:last-child`,
 };
 
 beforeAll(() => server.listen());
