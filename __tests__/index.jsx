@@ -1,60 +1,18 @@
 import React from 'react';
 import Application from '@hexlet/react-todo-app-with-backend';
-import { v4 as uuidV4 } from 'uuid';
 import faker from 'faker';
 import { rest } from 'msw';
 import { setupServer } from 'msw/node';
 import userEvent from '@testing-library/user-event';
-import { render, waitFor } from '../setupTests.js';
+import {
+  render,
+  waitFor,
+  buildList,
+  buildTask,
+  buildPreloadedState,
+} from '../setupTests.js';
 
 const server = setupServer();
-
-const buildList = (props = {}) => {
-  const {
-    id = uuidV4(),
-    name = faker.lorem.word(),
-    removable = true,
-  } = props;
-
-  const list = { id, name, removable };
-
-  return list;
-};
-
-const buildTask = (props = {}) => {
-  const {
-    id = uuidV4(),
-    listId = null,
-    text = faker.lorem.word(),
-    completed = false,
-    touched = Date.now(),
-  } = props;
-
-  const task = {
-    id,
-    listId,
-    text,
-    completed,
-    touched,
-  };
-
-  return task;
-};
-
-const buildPreloadedState = (props = {}) => {
-  const {
-    currentListId = 1,
-    lists = [
-      buildList({ name: 'primary', removable: false }),
-      buildList({ name: 'secondary' }),
-    ],
-    tasks = [],
-  } = props;
-
-  const preloadedState = { currentListId, lists, tasks };
-
-  return preloadedState;
-};
 
 const selectors = {
   addTaskButton: '.row .col-3 form button',
