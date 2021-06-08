@@ -247,7 +247,6 @@ test('Disables task field and task button during task creation.', async () => {
 test('Does not create task if there was an error during task creation.', async () => {
   const taskText = faker.lorem.word();
   const list = buildList({ name: 'primary', removable: false });
-  const task = buildTask({ listId: list.id });
 
   server.use(
     rest.post('/api/v1/lists/:listId/tasks', (req, res, ctx) => res(
@@ -264,7 +263,41 @@ test('Does not create task if there was an error during task creation.', async (
   await waitFor(() => expect(screen.queryByText(/network error/i)).toBeVisible());
 });
 
+test('Disables list field and list button during list creation.', async () => {
+  const list = buildList();
 
-// тест на то что поле листа и кнопка листа заблокированы во время создания листа
+  server.use(
+    rest.post('/api/v1/lists', (req, res, ctx) => res(
+      ctx.delay(1000),
+      ctx.json(list),
+    )),
+  );
 
-// при ошибки сети лист не создался
+  renderComponent();
+
+  userEvent.type(getListField(), list.name);
+  userEvent.click(getListButton());
+
+  await waitFor(() => expect(getListField()).toHaveAttribute('readonly'));
+  await waitFor(() => expect(getListButton()).toBeDisabled());
+
+  expect(await screen.findByText(list.name)).toBeVisible();
+});
+
+test('Does not create list if there was an error during list creation.', async () => {
+  const list = buildList();
+
+  server.use(
+    rest.post('/api/v1/lists', (req, res, ctx) => res(
+      ctx.status(500),
+    )),
+  );
+
+  renderComponent();
+
+  userEvent.type(getListField(), list.name);
+  userEvent.click(getListButton());
+
+  await waitFor(() => expect(screen.queryByText(list.name)).toBeNull());
+  await waitFor(() => expect(screen.queryByText(/network error/i)).toBeVisible());
+});
