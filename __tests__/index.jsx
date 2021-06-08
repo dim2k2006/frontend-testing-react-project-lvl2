@@ -19,6 +19,12 @@ afterEach(() => server.resetHandlers());
 
 afterAll(() => server.close());
 
+const renderComponent = ({ currentListId, lists, tasks } = {}) => {
+  const preloadedState = buildPreloadedState({ currentListId, lists, tasks });
+
+  render(<Application { ...preloadedState } />);
+};
+
 const createTask = async (taskText) => {
   userEvent.type(screen.getByRole('textbox', { name: /new task/i }), taskText);
   userEvent.click(screen.getByRole('button', { name: /add/i }));
@@ -65,19 +71,16 @@ const removeList = async (listName) => {
 };
 
 test('Shows the application.', async () => {
-  const preloadedState = buildPreloadedState();
-
-  render(<Application { ...preloadedState } />);
+  renderComponent();
 
   expect(screen.getByText('Hexlet Todos')).toBeVisible();
 });
 
 test('Creates a task.', async () => {
   const list = buildList({ name: 'primary', removable: false });
-  const preloadedState = buildPreloadedState({ currentListId: list.id, lists: [list] });
   const taskText = faker.lorem.word();
 
-  render(<Application { ...preloadedState } />);
+  renderComponent({ currentListId: list.id, lists: [list] });
 
   await createTask(taskText);
 
@@ -86,10 +89,9 @@ test('Creates a task.', async () => {
 
 test('Updates a task.', async () => {
   const list = buildList({ name: 'primary', removable: false });
-  const preloadedState = buildPreloadedState({ currentListId: list.id, lists: [list] });
   const taskText = faker.lorem.word();
 
-  render(<Application { ...preloadedState } />);
+  renderComponent({ currentListId: list.id, lists: [list] });
 
   await createTask(taskText);
 
@@ -101,10 +103,9 @@ test('Updates a task.', async () => {
 
 test('Deletes a task.', async () => {
   const list = buildList({ name: 'primary', removable: false });
-  const preloadedState = buildPreloadedState({ currentListId: list.id, lists: [list] });
   const taskText = faker.lorem.word();
 
-  render(<Application { ...preloadedState } />);
+  renderComponent({ currentListId: list.id, lists: [list] });
 
   await createTask(taskText);
 
@@ -117,9 +118,8 @@ test('Does not remove tasks with equal names from different lists.', async () =>
   const listName1 = faker.lorem.word();
   const listName2 = faker.lorem.word();
   const taskText = faker.lorem.word();
-  const preloadedState = buildPreloadedState({ lists: [], tasks: [] });
 
-  render(<Application { ...preloadedState } />);
+  renderComponent({ lists: [], tasks: [] });
 
   await createList(listName1);
 
@@ -144,9 +144,8 @@ test('Does not recover tasks from recovered list.', async () => {
   const listName = faker.lorem.word();
   const taskText1 = faker.lorem.word();
   const taskText2 = faker.lorem.word();
-  const preloadedState = buildPreloadedState({ lists: [], tasks: [] });
 
-  render(<Application { ...preloadedState } />);
+  renderComponent({ lists: [], tasks: [] });
 
   await createList(listName);
 
@@ -173,9 +172,8 @@ test('Does not duplicate tasks for lists with equal names.', async () => {
   const listName = faker.lorem.word();
   const taskText1 = faker.lorem.word();
   const taskText2 = faker.lorem.word();
-  const preloadedState = buildPreloadedState({ lists: [], tasks: [] });
 
-  render(<Application { ...preloadedState } />);
+  renderComponent({ lists: [], tasks: [] });
 
   await createList(listName);
 
