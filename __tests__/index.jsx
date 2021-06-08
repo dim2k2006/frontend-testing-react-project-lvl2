@@ -25,9 +25,12 @@ const renderComponent = ({ currentListId, lists, tasks } = {}) => {
   render(<Application { ...preloadedState } />);
 };
 
+const getTaskField = () => screen.getByRole('textbox', { name: /new task/i });
+const getTaskButton = () => screen.getByRole('button', { name: 'Add', exact: true });
+
 const createTask = async (taskText) => {
-  userEvent.type(screen.getByRole('textbox', { name: /new task/i }), taskText);
-  userEvent.click(screen.getByRole('button', { name: 'Add', exact: true }));
+  userEvent.type(getTaskField(), taskText);
+  userEvent.click(getTaskButton());
 
   return screen.findByText(taskText);
 };
@@ -45,13 +48,19 @@ const removeTask = async (taskText) => {
   return waitForElementToBeRemoved(screen.queryByText(taskText));
 };
 
-const createList = async (listName) => {
-  const field = screen.getByRole('textbox', { name: /new list/i });
+const getListField = () => screen.getByRole('textbox', { name: /new list/i });
+
+const getListButton = () => {
+  const field = getListField();
   const container = field.closest('div');
   const button = container.querySelector('button[type="submit"]');
 
-  userEvent.type(field, listName);
-  userEvent.click(button);
+  return button;
+};
+
+const createList = async (listName) => {
+  userEvent.type(getListField(), listName);
+  userEvent.click(getListButton());
 
   return screen.findByText(listName);
 };
@@ -171,7 +180,7 @@ test('Does not recover tasks from recovered list.', async () => {
 test('Does not create empty task.', async () => {
   renderComponent();
 
-  userEvent.click(screen.getByRole('button', { name: 'Add', exact: true }));
+  userEvent.click(getTaskButton());
 
   expect(await screen.findByText(/required/i)).toBeVisible();
 });
@@ -179,11 +188,36 @@ test('Does not create empty task.', async () => {
 test('Does not create empty list.', async () => {
   renderComponent();
 
-  userEvent.click(screen.getByRole('button', { name: /add list/i }));
+  userEvent.click(getListButton());
 
   expect(await screen.findByText(/required/i)).toBeVisible();
 });
 
-// тесты на то что нельзя создать два одинаковых списка
+test('Does not create task with the same name.', async () => {
+  const list = buildList({ name: 'primary', removable: false });
+  const taskText = faker.lorem.word();
+
+  renderComponent({ currentListId: list.id, lists: [list] });
+
+  await createTask(taskText);
+
+  userEvent.type(getTaskField(), taskText);
+
+  userEvent.click(getTaskButton());
+
+  expect(await screen.findByText(/already exists/i)).toBeVisible();
+});
+
+test('Does not create list with the same name.', async () => {
+  const list = buildList({ name: 'primary', removable: false });
+
+  renderComponent({ currentListId: list.id, lists: [list] });
+
+  userEvent.type(getListField(), list.name);
+
+  userEvent.click(getListButton());
+
+  expect(await screen.findByText(/already exists/i)).toBeVisible();
+});
 
 // тесты на ошибки сети
