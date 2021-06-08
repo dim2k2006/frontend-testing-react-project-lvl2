@@ -1,6 +1,7 @@
 import React from 'react';
 import Application from '@hexlet/react-todo-app-with-backend';
 import faker from 'faker';
+import { rest } from 'msw';
 import userEvent from '@testing-library/user-event';
 import {
   screen,
@@ -9,7 +10,7 @@ import {
   waitForElementToBeRemoved,
   waitFor,
   buildList,
-  buildPreloadedState,
+  buildPreloadedState, buildTask,
 } from '../setupTests.js';
 import server from '../mocks/server';
 
@@ -220,4 +221,50 @@ test('Does not create list with the same name.', async () => {
   expect(await screen.findByText(/already exists/i)).toBeVisible();
 });
 
-// тесты на ошибки сети
+test('Disables task field and task button during task creation.', async () => {
+  const taskText = faker.lorem.word();
+  const list = buildList({ name: 'primary', removable: false });
+  const task = buildTask({ listId: list.id });
+
+  server.use(
+    rest.post('/api/v1/lists/:listId/tasks', (req, res, ctx) => res(
+      ctx.delay(1000),
+      ctx.json(task),
+    )),
+  );
+
+  renderComponent({ currentListId: list.id, lists: [list] });
+
+  userEvent.type(getTaskField(), taskText);
+  userEvent.click(getTaskButton());
+
+  await waitFor(() => expect(getTaskField()).toHaveAttribute('readonly'));
+  await waitFor(() => expect(getTaskButton()).toBeDisabled());
+
+  expect(await screen.findByText(task.text)).toBeVisible();
+});
+
+test('Does not create task if there was an error during task creation.', async () => {
+  const taskText = faker.lorem.word();
+  const list = buildList({ name: 'primary', removable: false });
+  const task = buildTask({ listId: list.id });
+
+  server.use(
+    rest.post('/api/v1/lists/:listId/tasks', (req, res, ctx) => res(
+      ctx.status(500),
+    )),
+  );
+
+  renderComponent({ currentListId: list.id, lists: [list] });
+
+  userEvent.type(getTaskField(), taskText);
+  userEvent.click(getTaskButton());
+
+  await waitFor(() => expect(screen.queryByText(taskText)).toBeNull());
+  await waitFor(() => expect(screen.queryByText(/network error/i)).toBeVisible());
+});
+
+
+// тест на то что поле листа и кнопка листа заблокированы во время создания листа
+
+// при ошибки сети лист не создался
