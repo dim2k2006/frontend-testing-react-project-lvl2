@@ -37,7 +37,7 @@
     "jest-cli": "^26.4.2"
   },
   "dependencies": {
-    "@hexlet/react-todo-app-with-backend": "^0.2.0",
+    "@hexlet/react-todo-app-with-backend": "^0.10.0",
     "@testing-library/jest-dom": "^5.12.0",
     "@testing-library/react": "^11.2.7",
     "faker": "^5.5.3",

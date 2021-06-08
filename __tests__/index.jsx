@@ -27,7 +27,7 @@ const renderComponent = ({ currentListId, lists, tasks } = {}) => {
 
 const createTask = async (taskText) => {
   userEvent.type(screen.getByRole('textbox', { name: /new task/i }), taskText);
-  userEvent.click(screen.getByRole('button', { name: /add/i }));
+  userEvent.click(screen.getByRole('button', { name: 'Add', exact: true }));
 
   return screen.findByText(taskText);
 };
@@ -168,30 +168,22 @@ test('Does not recover tasks from recovered list.', async () => {
   await waitFor(() => expect(screen.queryByText(taskText2)).toBeNull());
 });
 
-test('Does not duplicate tasks for lists with equal names.', async () => {
-  const listName = faker.lorem.word();
-  const taskText1 = faker.lorem.word();
-  const taskText2 = faker.lorem.word();
+test('Does not create empty task.', async () => {
+  renderComponent();
 
-  renderComponent({ lists: [], tasks: [] });
+  userEvent.click(screen.getByRole('button', { name: 'Add', exact: true }));
 
-  await createList(listName);
-
-  await selectList(listName);
-
-  await createTask(taskText1);
-
-  await createTask(taskText2);
-
-  await waitFor(() => expect(screen.queryByText(taskText1)).toBeVisible());
-  await waitFor(() => expect(screen.queryByText(taskText2)).toBeVisible());
-
-  await createList(listName);
-
-  await waitFor(() => expect(screen.getAllByRole('button', { name: new RegExp(listName) })).toHaveLength(2));
-
-  await selectList(listName, 1);
-
-  await waitFor(() => expect(screen.queryByText(taskText1)).toBeNull());
-  await waitFor(() => expect(screen.queryByText(taskText2)).toBeNull());
+  expect(await screen.findByText(/required/i)).toBeVisible();
 });
+
+test('Does not create empty list.', async () => {
+  renderComponent();
+
+  userEvent.click(screen.getByRole('button', { name: /add list/i }));
+
+  expect(await screen.findByText(/required/i)).toBeVisible();
+});
+
+// тесты на то что нельзя создать два одинаковых списка
+
+// тесты на ошибки сети
