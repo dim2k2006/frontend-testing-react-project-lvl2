@@ -14,7 +14,9 @@ import {
 } from '../setupTests.js';
 import server from '../mocks/server';
 
-beforeAll(() => server.listen());
+beforeAll(() => server.listen({
+  onUnhandledRequest: 'warn',
+}));
 
 afterEach(() => server.resetHandlers());
 
