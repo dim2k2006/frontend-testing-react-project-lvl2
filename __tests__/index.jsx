@@ -12,21 +12,35 @@ import {
   buildList,
   buildPreloadedState, buildTask,
 } from '../setupTests.js';
-import server from '../mocks/server';
+import getServer from '../mocks/handlers';
 
-beforeAll(() => server.listen({
-  onUnhandledRequest: 'warn',
-}));
+const primaryList = buildList({ name: 'primary', removable: false });
+const secondaryList = buildList({ name: 'secondary' });
+const preloadedState = buildPreloadedState({
+  currentListId: primaryList.id,
+  lists: [primaryList, secondaryList],
+  tasks: [],
+});
 
-afterEach(() => server.resetHandlers());
-
-afterAll(() => server.close());
-
-const renderComponent = ({ currentListId, lists, tasks } = {}) => {
-  const preloadedState = buildPreloadedState({ currentListId, lists, tasks });
-
+const renderComponent = () => {
   render(<Application { ...preloadedState } />);
 };
+
+let server = getServer({ lists: preloadedState.lists, tasks: preloadedState.tasks });
+
+beforeEach(() => {
+  server = getServer({ lists: preloadedState.lists, tasks: preloadedState.tasks });
+
+  server.listen({ onUnhandledRequest: 'warn' });
+
+  renderComponent();
+});
+
+afterEach(() => {
+  server.resetHandlers();
+
+  server.close();
+});
 
 const getTaskField = () => screen.getByRole('textbox', { name: /new task/i });
 const getTaskButton = () => screen.getByRole('button', { name: 'Add', exact: true });
@@ -83,16 +97,11 @@ const removeList = async (listName) => {
 };
 
 test('Shows the application.', async () => {
-  renderComponent();
-
   expect(screen.getByText('Hexlet Todos')).toBeVisible();
 });
 
 test('Creates a task.', async () => {
-  const list = buildList({ name: 'primary', removable: false });
   const taskText = faker.lorem.word();
-
-  renderComponent({ currentListId: list.id, lists: [list] });
 
   await createTask(taskText);
 
@@ -100,10 +109,7 @@ test('Creates a task.', async () => {
 });
 
 test('Updates a task.', async () => {
-  const list = buildList({ name: 'primary', removable: false });
   const taskText = faker.lorem.word();
-
-  renderComponent({ currentListId: list.id, lists: [list] });
 
   await createTask(taskText);
 
@@ -114,10 +120,7 @@ test('Updates a task.', async () => {
 });
 
 test('Deletes a task.', async () => {
-  const list = buildList({ name: 'primary', removable: false });
   const taskText = faker.lorem.word();
-
-  renderComponent({ currentListId: list.id, lists: [list] });
 
   await createTask(taskText);
 
@@ -127,15 +130,9 @@ test('Deletes a task.', async () => {
 });
 
 test('Does not remove tasks with equal names from different lists.', async () => {
-  const listName1 = faker.lorem.word();
-  const listName2 = faker.lorem.word();
+  const listName1 = primaryList.name;
+  const listName2 = secondaryList.name;
   const taskText = faker.lorem.word();
-
-  renderComponent({ lists: [], tasks: [] });
-
-  await createList(listName1);
-
-  await createList(listName2);
 
   await selectList(listName1);
 
@@ -153,13 +150,9 @@ test('Does not remove tasks with equal names from different lists.', async () =>
 });
 
 test('Does not recover tasks from recovered list.', async () => {
-  const listName = faker.lorem.word();
+  const listName = secondaryList.name;
   const taskText1 = faker.lorem.word();
   const taskText2 = faker.lorem.word();
-
-  renderComponent({ lists: [], tasks: [] });
-
-  await createList(listName);
 
   await selectList(listName);
 
@@ -181,26 +174,19 @@ test('Does not recover tasks from recovered list.', async () => {
 });
 
 test('Does not create empty task.', async () => {
-  renderComponent();
-
   userEvent.click(getTaskButton());
 
   expect(await screen.findByText(/required/i)).toBeVisible();
 });
 
 test('Does not create empty list.', async () => {
-  renderComponent();
-
   userEvent.click(getListButton());
 
   expect(await screen.findByText(/required/i)).toBeVisible();
 });
 
 test('Does not create task with the same name.', async () => {
-  const list = buildList({ name: 'primary', removable: false });
   const taskText = faker.lorem.word();
-
-  renderComponent({ currentListId: list.id, lists: [list] });
 
   await createTask(taskText);
 
@@ -212,11 +198,7 @@ test('Does not create task with the same name.', async () => {
 });
 
 test('Does not create list with the same name.', async () => {
-  const list = buildList({ name: 'primary', removable: false });
-
-  renderComponent({ currentListId: list.id, lists: [list] });
-
-  userEvent.type(getListField(), list.name);
+  userEvent.type(getListField(), primaryList.name);
 
   userEvent.click(getListButton());
 
@@ -225,8 +207,7 @@ test('Does not create list with the same name.', async () => {
 
 test('Disables task field and task button during task creation.', async () => {
   const taskText = faker.lorem.word();
-  const list = buildList({ name: 'primary', removable: false });
-  const task = buildTask({ listId: list.id });
+  const task = buildTask({ listId: primaryList.id });
 
   server.use(
     rest.post('/api/v1/lists/:listId/tasks', (req, res, ctx) => res(
@@ -234,8 +215,6 @@ test('Disables task field and task button during task creation.', async () => {
       ctx.json(task),
     )),
   );
-
-  renderComponent({ currentListId: list.id, lists: [list] });
 
   userEvent.type(getTaskField(), taskText);
   userEvent.click(getTaskButton());
@@ -248,15 +227,12 @@ test('Disables task field and task button during task creation.', async () => {
 
 test('Does not create task if there was an error during task creation.', async () => {
   const taskText = faker.lorem.word();
-  const list = buildList({ name: 'primary', removable: false });
 
   server.use(
     rest.post('/api/v1/lists/:listId/tasks', (req, res, ctx) => res(
       ctx.status(500),
     )),
   );
-
-  renderComponent({ currentListId: list.id, lists: [list] });
 
   userEvent.type(getTaskField(), taskText);
   userEvent.click(getTaskButton());
@@ -275,8 +251,6 @@ test('Disables list field and list button during list creation.', async () => {
     )),
   );
 
-  renderComponent();
-
   userEvent.type(getListField(), list.name);
   userEvent.click(getListButton());
 
@@ -294,8 +268,6 @@ test('Does not create list if there was an error during list creation.', async (
       ctx.status(500),
     )),
   );
-
-  renderComponent();
 
   userEvent.type(getListField(), list.name);
   userEvent.click(getListButton());
