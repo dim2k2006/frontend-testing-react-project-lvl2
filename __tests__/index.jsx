@@ -96,6 +96,10 @@ const removeList = async (listName) => {
   return waitForElementToBeRemoved(screen.queryByText(listName));
 };
 
+test('Shows the application.', async () => {
+  expect(screen.getByText('Hexlet Todos')).toBeVisible();
+});
+
 describe('Lists cases.', () => {
   test('Creates a list.', async () => {
     const listName = faker.lorem.word();
@@ -165,133 +169,133 @@ describe('Lists cases.', () => {
   });
 });
 
-test('Shows the application.', async () => {
-  expect(screen.getByText('Hexlet Todos')).toBeVisible();
+describe('Tasks cases.', () => {
+  test('Creates a task.', async () => {
+    const taskText = faker.lorem.word();
+
+    await createTask(taskText);
+
+    expect(screen.getByText(taskText)).toBeVisible();
+  });
+
+  test('Updates a task.', async () => {
+    const taskText = faker.lorem.word();
+
+    await createTask(taskText);
+
+    await toggleTask(taskText);
+
+    expect(await screen.findByRole('checkbox', { name: new RegExp(taskText) })).toBeVisible();
+    expect(await screen.findByRole('checkbox', { name: new RegExp(taskText) })).toBeChecked();
+  });
+
+  test('Removes a task.', async () => {
+    const taskText = faker.lorem.word();
+
+    await createTask(taskText);
+
+    await removeTask(taskText);
+
+    expect(screen.queryByText(taskText)).toBeNull();
+  });
+
+  test('Does not create empty task.', async () => {
+    userEvent.click(getTaskButton());
+
+    expect(await screen.findByText(/required/i)).toBeVisible();
+  });
+
+  test('Does not create task with an existing name.', async () => {
+    const taskText = faker.lorem.word();
+
+    await createTask(taskText);
+
+    userEvent.type(getTaskField(), taskText);
+
+    userEvent.click(getTaskButton());
+
+    expect(await screen.findByText(/already exists/i)).toBeVisible();
+  });
+
+  test('Disables task field and task button during task creation.', async () => {
+    const taskText = faker.lorem.word();
+    const task = buildTask({ listId: primaryList.id });
+
+    server.use(
+      rest.post('/api/v1/lists/:listId/tasks', (req, res, ctx) => res(
+        ctx.delay(1000),
+        ctx.json(task),
+      )),
+    );
+
+    userEvent.type(getTaskField(), taskText);
+    userEvent.click(getTaskButton());
+
+    await waitFor(() => expect(getTaskField()).toHaveAttribute('readonly'));
+    await waitFor(() => expect(getTaskButton()).toBeDisabled());
+
+    expect(await screen.findByText(task.text)).toBeVisible();
+  });
+
+  test('Does not create task if there was an error during task creation.', async () => {
+    const taskText = faker.lorem.word();
+
+    server.use(
+      rest.post('/api/v1/lists/:listId/tasks', (req, res, ctx) => res(
+        ctx.status(500),
+      )),
+    );
+
+    userEvent.type(getTaskField(), taskText);
+    userEvent.click(getTaskButton());
+
+    await waitFor(() => expect(screen.queryByText(taskText)).toBeNull());
+    await waitFor(() => expect(screen.queryByText(/network error/i)).toBeVisible());
+  });
 });
 
-test('Creates a task.', async () => {
-  const taskText = faker.lorem.word();
+describe('Mixed cases.', () => {
+  test('Does not remove tasks with equal names from different lists.', async () => {
+    const listName1 = primaryList.name;
+    const listName2 = secondaryList.name;
+    const taskText = faker.lorem.word();
 
-  await createTask(taskText);
+    await selectList(listName1);
 
-  expect(screen.getByText(taskText)).toBeVisible();
-});
+    await createTask(taskText);
 
-test('Updates a task.', async () => {
-  const taskText = faker.lorem.word();
+    await selectList(listName2);
 
-  await createTask(taskText);
+    await createTask(taskText);
 
-  await toggleTask(taskText);
+    await removeTask(taskText);
 
-  expect(await screen.findByRole('checkbox', { name: new RegExp(taskText) })).toBeVisible();
-  expect(await screen.findByRole('checkbox', { name: new RegExp(taskText) })).toBeChecked();
-});
+    await selectList(listName1);
 
-test('Deletes a task.', async () => {
-  const taskText = faker.lorem.word();
+    expect(await screen.findByText(taskText)).toBeVisible();
+  });
 
-  await createTask(taskText);
+  test('Does not recover tasks from recovered list.', async () => {
+    const listName = secondaryList.name;
+    const taskText1 = faker.lorem.word();
+    const taskText2 = faker.lorem.word();
 
-  await removeTask(taskText);
+    await selectList(listName);
 
-  expect(screen.queryByText(taskText)).toBeNull();
-});
+    await createTask(taskText1);
 
-test('Does not remove tasks with equal names from different lists.', async () => {
-  const listName1 = primaryList.name;
-  const listName2 = secondaryList.name;
-  const taskText = faker.lorem.word();
+    await createTask(taskText2);
 
-  await selectList(listName1);
+    await removeList(listName);
 
-  await createTask(taskText);
+    await waitFor(() => expect(screen.queryByText(listName)).toBeNull());
 
-  await selectList(listName2);
+    await createList(listName);
 
-  await createTask(taskText);
+    await selectList(listName);
 
-  await removeTask(taskText);
-
-  await selectList(listName1);
-
-  expect(await screen.findByText(taskText)).toBeVisible();
-});
-
-test('Does not recover tasks from recovered list.', async () => {
-  const listName = secondaryList.name;
-  const taskText1 = faker.lorem.word();
-  const taskText2 = faker.lorem.word();
-
-  await selectList(listName);
-
-  await createTask(taskText1);
-
-  await createTask(taskText2);
-
-  await removeList(listName);
-
-  await waitFor(() => expect(screen.queryByText(listName)).toBeNull());
-
-  await createList(listName);
-
-  await selectList(listName);
-
-  await waitFor(() => expect(screen.queryByText(listName)).toBeVisible());
-  await waitFor(() => expect(screen.queryByText(taskText1)).toBeNull());
-  await waitFor(() => expect(screen.queryByText(taskText2)).toBeNull());
-});
-
-test('Does not create empty task.', async () => {
-  userEvent.click(getTaskButton());
-
-  expect(await screen.findByText(/required/i)).toBeVisible();
-});
-
-test('Does not create task with the same name.', async () => {
-  const taskText = faker.lorem.word();
-
-  await createTask(taskText);
-
-  userEvent.type(getTaskField(), taskText);
-
-  userEvent.click(getTaskButton());
-
-  expect(await screen.findByText(/already exists/i)).toBeVisible();
-});
-
-test('Disables task field and task button during task creation.', async () => {
-  const taskText = faker.lorem.word();
-  const task = buildTask({ listId: primaryList.id });
-
-  server.use(
-    rest.post('/api/v1/lists/:listId/tasks', (req, res, ctx) => res(
-      ctx.delay(1000),
-      ctx.json(task),
-    )),
-  );
-
-  userEvent.type(getTaskField(), taskText);
-  userEvent.click(getTaskButton());
-
-  await waitFor(() => expect(getTaskField()).toHaveAttribute('readonly'));
-  await waitFor(() => expect(getTaskButton()).toBeDisabled());
-
-  expect(await screen.findByText(task.text)).toBeVisible();
-});
-
-test('Does not create task if there was an error during task creation.', async () => {
-  const taskText = faker.lorem.word();
-
-  server.use(
-    rest.post('/api/v1/lists/:listId/tasks', (req, res, ctx) => res(
-      ctx.status(500),
-    )),
-  );
-
-  userEvent.type(getTaskField(), taskText);
-  userEvent.click(getTaskButton());
-
-  await waitFor(() => expect(screen.queryByText(taskText)).toBeNull());
-  await waitFor(() => expect(screen.queryByText(/network error/i)).toBeVisible());
+    await waitFor(() => expect(screen.queryByText(listName)).toBeVisible());
+    await waitFor(() => expect(screen.queryByText(taskText1)).toBeNull());
+    await waitFor(() => expect(screen.queryByText(taskText2)).toBeNull());
+  });
 });
