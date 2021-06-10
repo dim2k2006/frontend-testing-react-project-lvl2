@@ -164,7 +164,7 @@ describe('Lists cases.', () => {
     userEvent.type(getListField(), list.name);
     userEvent.click(getListButton());
 
-    await waitFor(() => expect(screen.queryByText(list.name)).toBeNull());
+    await waitFor(() => expect(screen.queryByText(list.name)).not.toBeInTheDocument());
     await waitFor(() => expect(screen.queryByText(/network error/i)).toBeVisible());
   });
 });
@@ -196,7 +196,7 @@ describe('Tasks cases.', () => {
 
     await removeTask(taskText);
 
-    expect(screen.queryByText(taskText)).toBeNull();
+    expect(screen.queryByText(taskText)).not.toBeInTheDocument();
   });
 
   test('Does not create empty task.', async () => {
@@ -249,7 +249,7 @@ describe('Tasks cases.', () => {
     userEvent.type(getTaskField(), taskText);
     userEvent.click(getTaskButton());
 
-    await waitFor(() => expect(screen.queryByText(taskText)).toBeNull());
+    await waitFor(() => expect(screen.queryByText(taskText)).not.toBeInTheDocument());
     await waitFor(() => expect(screen.queryByText(/network error/i)).toBeVisible());
   });
 });
@@ -288,14 +288,14 @@ describe('Mixed cases.', () => {
 
     await removeList(listName);
 
-    await waitFor(() => expect(screen.queryByText(listName)).toBeNull());
+    await waitFor(() => expect(screen.queryByText(listName)).not.toBeInTheDocument());
 
     await createList(listName);
 
     await selectList(listName);
 
     await waitFor(() => expect(screen.queryByText(listName)).toBeVisible());
-    await waitFor(() => expect(screen.queryByText(taskText1)).toBeNull());
-    await waitFor(() => expect(screen.queryByText(taskText2)).toBeNull());
+    await waitFor(() => expect(screen.queryByText(taskText1)).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.queryByText(taskText2)).not.toBeInTheDocument());
   });
 });
