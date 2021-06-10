@@ -147,6 +147,22 @@ describe('Lists cases.', () => {
 
     expect(await screen.findByText(list.name)).toBeVisible();
   });
+
+  test('Does not create list if there was an error during list creation.', async () => {
+    const list = buildList();
+
+    server.use(
+      rest.post('/api/v1/lists', (req, res, ctx) => res(
+        ctx.status(500),
+      )),
+    );
+
+    userEvent.type(getListField(), list.name);
+    userEvent.click(getListButton());
+
+    await waitFor(() => expect(screen.queryByText(list.name)).toBeNull());
+    await waitFor(() => expect(screen.queryByText(/network error/i)).toBeVisible());
+  });
 });
 
 test('Shows the application.', async () => {
@@ -277,21 +293,5 @@ test('Does not create task if there was an error during task creation.', async (
   userEvent.click(getTaskButton());
 
   await waitFor(() => expect(screen.queryByText(taskText)).toBeNull());
-  await waitFor(() => expect(screen.queryByText(/network error/i)).toBeVisible());
-});
-
-test('Does not create list if there was an error during list creation.', async () => {
-  const list = buildList();
-
-  server.use(
-    rest.post('/api/v1/lists', (req, res, ctx) => res(
-      ctx.status(500),
-    )),
-  );
-
-  userEvent.type(getListField(), list.name);
-  userEvent.click(getListButton());
-
-  await waitFor(() => expect(screen.queryByText(list.name)).toBeNull());
   await waitFor(() => expect(screen.queryByText(/network error/i)).toBeVisible());
 });
