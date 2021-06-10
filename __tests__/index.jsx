@@ -114,6 +114,39 @@ describe('Lists cases.', () => {
 
     await waitFor(() => expect(screen.queryByText(listName)).not.toBeInTheDocument());
   });
+
+  test('Does not create empty list.', async () => {
+    userEvent.click(getListButton());
+
+    expect(await screen.findByText(/required/i)).toBeVisible();
+  });
+
+  test('Does not create list with an existing name.', async () => {
+    userEvent.type(getListField(), primaryList.name);
+
+    userEvent.click(getListButton());
+
+    expect(await screen.findByText(/already exists/i)).toBeVisible();
+  });
+
+  test('Disables list field and list button during list creation.', async () => {
+    const list = buildList();
+
+    server.use(
+      rest.post('/api/v1/lists', (req, res, ctx) => res(
+        ctx.delay(1000),
+        ctx.json(list),
+      )),
+    );
+
+    userEvent.type(getListField(), list.name);
+    userEvent.click(getListButton());
+
+    await waitFor(() => expect(getListField()).toHaveAttribute('readonly'));
+    await waitFor(() => expect(getListButton()).toBeDisabled());
+
+    expect(await screen.findByText(list.name)).toBeVisible();
+  });
 });
 
 test('Shows the application.', async () => {
@@ -199,12 +232,6 @@ test('Does not create empty task.', async () => {
   expect(await screen.findByText(/required/i)).toBeVisible();
 });
 
-test('Does not create empty list.', async () => {
-  userEvent.click(getListButton());
-
-  expect(await screen.findByText(/required/i)).toBeVisible();
-});
-
 test('Does not create task with the same name.', async () => {
   const taskText = faker.lorem.word();
 
@@ -213,14 +240,6 @@ test('Does not create task with the same name.', async () => {
   userEvent.type(getTaskField(), taskText);
 
   userEvent.click(getTaskButton());
-
-  expect(await screen.findByText(/already exists/i)).toBeVisible();
-});
-
-test('Does not create list with the same name.', async () => {
-  userEvent.type(getListField(), primaryList.name);
-
-  userEvent.click(getListButton());
 
   expect(await screen.findByText(/already exists/i)).toBeVisible();
 });
@@ -259,25 +278,6 @@ test('Does not create task if there was an error during task creation.', async (
 
   await waitFor(() => expect(screen.queryByText(taskText)).toBeNull());
   await waitFor(() => expect(screen.queryByText(/network error/i)).toBeVisible());
-});
-
-test('Disables list field and list button during list creation.', async () => {
-  const list = buildList();
-
-  server.use(
-    rest.post('/api/v1/lists', (req, res, ctx) => res(
-      ctx.delay(1000),
-      ctx.json(list),
-    )),
-  );
-
-  userEvent.type(getListField(), list.name);
-  userEvent.click(getListButton());
-
-  await waitFor(() => expect(getListField()).toHaveAttribute('readonly'));
-  await waitFor(() => expect(getListButton()).toBeDisabled());
-
-  expect(await screen.findByText(list.name)).toBeVisible();
 });
 
 test('Does not create list if there was an error during list creation.', async () => {
