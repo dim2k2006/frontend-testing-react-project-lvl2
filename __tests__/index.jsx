@@ -96,6 +96,26 @@ const removeList = async (listName) => {
   return waitForElementToBeRemoved(screen.queryByText(listName));
 };
 
+describe('Lists cases.', () => {
+  test('Creates a list.', async () => {
+    const listName = faker.lorem.word();
+
+    await createList(listName);
+
+    expect(await screen.findByText(listName)).toBeInTheDocument();
+  });
+
+  test('Removes a list.', async () => {
+    const listName = faker.lorem.word();
+
+    await createList(listName);
+
+    await removeList(listName);
+
+    await waitFor(() => expect(screen.queryByText(listName)).not.toBeInTheDocument());
+  });
+});
+
 test('Shows the application.', async () => {
   expect(screen.getByText('Hexlet Todos')).toBeVisible();
 });
