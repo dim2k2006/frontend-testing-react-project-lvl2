@@ -43,8 +43,8 @@ afterEach(() => {
   server.close();
 });
 
-const getTaskField = () => screen.getByRole('textbox', { name: /new task/i });
-const getTaskButton = () => screen.getByRole('button', { name: 'Add', exact: true });
+const getTaskField = () => screen.getByRole('textbox', { name: new RegExp(/new task/i) });
+const getTaskButton = () => screen.getByRole('button', { name: new RegExp(/Add/) });
 
 const createTask = async (taskText) => {
   userEvent.type(getTaskField(), taskText);
@@ -61,12 +61,12 @@ const removeTask = async (taskText) => {
   const taskCheckbox = screen.getByRole('checkbox', { name: new RegExp(taskText) });
   const container = taskCheckbox.closest('.row');
 
-  userEvent.click(getByRole(container, 'button', { name: /remove/i }));
+  userEvent.click(getByRole(container, 'button', { name: new RegExp(/remove/i) }));
 
   return waitForElementToBeRemoved(screen.queryByText(taskText));
 };
 
-const getListField = () => screen.getByRole('textbox', { name: /new list/i });
+const getListField = () => screen.getByRole('textbox', { name: new RegExp(/new list/i) });
 
 const getListButton = () => {
   const field = getListField();
