@@ -151,6 +151,9 @@ describe('Lists cases.', () => {
     await waitFor(() => expect(getListButton()).toBeDisabled());
 
     expect(await screen.findByText(list.name)).toBeVisible();
+
+    await waitFor(() => expect(getListField()).not.toHaveAttribute('readonly'));
+    await waitFor(() => expect(getListButton()).not.toBeDisabled());
   });
 
   test('Does not create list if there was an error during list creation.', async () => {
@@ -236,6 +239,9 @@ describe('Tasks cases.', () => {
     await waitFor(() => expect(getTaskButton()).toBeDisabled());
 
     expect(await screen.findByText(task.text)).toBeVisible();
+
+    await waitFor(() => expect(getTaskField()).not.toHaveAttribute('readonly'));
+    await waitFor(() => expect(getTaskButton()).not.toBeDisabled());
   });
 
   test('Does not create task if there was an error during task creation.', async () => {
