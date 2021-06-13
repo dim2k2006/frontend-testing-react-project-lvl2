@@ -3,6 +3,9 @@ import '@testing-library/jest-dom/extend-expect';
 import { v4 as uuidV4 } from 'uuid';
 import faker from 'faker';
 
+// Делаем реэкспорт чтобы в файлах с тестами импортировать все из файла setupTest.js
+// С таким подходом можно переопределять методы библиотеки @testing-library/react
+// например, метод render https://redux.js.org/recipes/writing-tests
 export * from '@testing-library/react';
 
 export const buildList = (props = {}) => {
