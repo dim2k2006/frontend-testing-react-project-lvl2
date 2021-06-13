@@ -97,7 +97,7 @@ const removeList = async (listName) => {
   return waitForElementToBeRemoved(screen.queryByText(listName));
 };
 
-test('Shows the application.', async () => {
+test('Shows the application.', () => {
   expect(screen.getByText('Hexlet Todos')).toBeVisible();
 });
 
