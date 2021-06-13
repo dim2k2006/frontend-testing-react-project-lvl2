@@ -134,7 +134,7 @@ describe('Lists cases.', () => {
   });
 
   test('Disables list field and list button during list creation.', async () => {
-    const list = buildList();
+    const list = buildList({ name: faker.lorem.word() });
 
     server.use(
       rest.post('/api/v1/lists', (req, res, ctx) => res(
@@ -153,7 +153,7 @@ describe('Lists cases.', () => {
   });
 
   test('Does not create list if there was an error during list creation.', async () => {
-    const list = buildList();
+    const list = buildList({ name: faker.lorem.word() });
 
     server.use(
       rest.post('/api/v1/lists', (req, res, ctx) => res(

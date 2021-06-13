@@ -8,7 +8,7 @@ export * from '@testing-library/react';
 export const buildList = (props = {}) => {
   const {
     id = uuidV4(),
-    name = faker.lorem.word(),
+    name,
     removable = true,
   } = props;
 
