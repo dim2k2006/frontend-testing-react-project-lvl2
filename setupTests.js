@@ -23,7 +23,7 @@ export const buildList = (props = {}) => {
 export const buildTask = (props = {}) => {
   const {
     id = uuidV4(),
-    listId = null,
+    listId,
     text = faker.lorem.word(),
     completed = false,
     touched = Date.now(),

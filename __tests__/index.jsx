@@ -10,7 +10,8 @@ import {
   waitForElementToBeRemoved,
   waitFor,
   buildList,
-  buildPreloadedState, buildTask,
+  buildPreloadedState,
+  buildTask,
 } from '../setupTests.js';
 import getServer from '../mocks/handlers';
 
