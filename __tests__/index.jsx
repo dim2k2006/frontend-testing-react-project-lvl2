@@ -103,7 +103,7 @@ test('Shows the application.', () => {
 
 describe('Lists cases.', () => {
   test('Creates a list.', async () => {
-    const listName = faker.lorem.word();
+    const listName = faker.lorem.word(10);
 
     await createList(listName);
 
@@ -111,7 +111,7 @@ describe('Lists cases.', () => {
   });
 
   test('Removes a list.', async () => {
-    const listName = faker.lorem.word();
+    const listName = faker.lorem.word(10);
 
     await createList(listName);
 
@@ -135,7 +135,7 @@ describe('Lists cases.', () => {
   });
 
   test('Disables list field and list button during list creation.', async () => {
-    const list = buildList({ name: faker.lorem.word() });
+    const list = buildList({ name: faker.lorem.word(10) });
 
     server.use(
       rest.post('/api/v1/lists', (req, res, ctx) => res(
@@ -154,7 +154,7 @@ describe('Lists cases.', () => {
   });
 
   test('Does not create list if there was an error during list creation.', async () => {
-    const list = buildList({ name: faker.lorem.word() });
+    const list = buildList({ name: faker.lorem.word(10) });
 
     server.use(
       rest.post('/api/v1/lists', (req, res, ctx) => res(
@@ -172,7 +172,7 @@ describe('Lists cases.', () => {
 
 describe('Tasks cases.', () => {
   test('Creates a task.', async () => {
-    const taskText = faker.lorem.word();
+    const taskText = faker.lorem.word(5);
 
     await createTask(taskText);
 
@@ -180,7 +180,7 @@ describe('Tasks cases.', () => {
   });
 
   test('Updates a task.', async () => {
-    const taskText = faker.lorem.word();
+    const taskText = faker.lorem.word(5);
 
     await createTask(taskText);
 
@@ -191,7 +191,7 @@ describe('Tasks cases.', () => {
   });
 
   test('Removes a task.', async () => {
-    const taskText = faker.lorem.word();
+    const taskText = faker.lorem.word(5);
 
     await createTask(taskText);
 
@@ -207,7 +207,7 @@ describe('Tasks cases.', () => {
   });
 
   test('Does not create task with an existing name.', async () => {
-    const taskText = faker.lorem.word();
+    const taskText = faker.lorem.word(5);
 
     await createTask(taskText);
 
@@ -219,7 +219,7 @@ describe('Tasks cases.', () => {
   });
 
   test('Disables task field and task button during task creation.', async () => {
-    const taskText = faker.lorem.word();
+    const taskText = faker.lorem.word(5);
     const task = buildTask({ listId: primaryList.id });
 
     server.use(
@@ -239,7 +239,7 @@ describe('Tasks cases.', () => {
   });
 
   test('Does not create task if there was an error during task creation.', async () => {
-    const taskText = faker.lorem.word();
+    const taskText = faker.lorem.word(5);
 
     server.use(
       rest.post('/api/v1/lists/:listId/tasks', (req, res, ctx) => res(
@@ -259,7 +259,7 @@ describe('Mixed cases.', () => {
   test('Does not remove tasks with equal names from different lists.', async () => {
     const listName1 = primaryList.name;
     const listName2 = secondaryList.name;
-    const taskText = faker.lorem.word();
+    const taskText = faker.lorem.word(5);
 
     await selectList(listName1);
 
@@ -278,8 +278,8 @@ describe('Mixed cases.', () => {
 
   test('Does not recover tasks from recovered list.', async () => {
     const listName = secondaryList.name;
-    const taskText1 = faker.lorem.word();
-    const taskText2 = faker.lorem.word();
+    const taskText1 = faker.lorem.word(5);
+    const taskText2 = faker.lorem.word(5);
 
     await selectList(listName);
 
