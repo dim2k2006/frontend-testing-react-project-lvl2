@@ -27,7 +27,7 @@ const renderComponent = () => {
   render(<Application { ...preloadedState } />);
 };
 
-let server = getServer({ lists: preloadedState.lists, tasks: preloadedState.tasks });
+let server;
 
 beforeEach(() => {
   server = getServer({ lists: preloadedState.lists, tasks: preloadedState.tasks });
